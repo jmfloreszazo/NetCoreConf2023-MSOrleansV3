@@ -1,0 +1,49 @@
+﻿@inject WanderlandHubClient _hubClient
+
+@if (_latestUpdate != null)
+{
+    <MudPaper Class="my-5" Elevation="8">
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h3">Server Statistics</MudText>
+                    <MudText Typo="Typo.body1">Details about the wanderland server. To see more real-time diagnostic information, click the dashboard button.</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudListItem title="Server started" Avatar="@Icons.Material.Filled.CalendarMonth" IconColor="Color.Primary">
+                    <MudText Typo="Typo.h5" Class="d-block">Server started</MudText>
+                    <MudText Typo="Typo.body1" Class="d-block">@_latestUpdate.DateStarted</MudText>
+                </MudListItem>
+                <MudListItem title="Server uptime" Avatar="@Icons.Material.Filled.Timer" IconColor="Color.Primary">
+                    <MudText Typo="Typo.h5" Class="d-block">Server uptime</MudText>
+                    <MudText Typo="Typo.body1" Class="d-block">@_latestUpdate.TimeUp.ToString("hh\\:mm\\:ss")</MudText>
+                </MudListItem>
+                <MudListItem title="Worlds completed" Avatar="@Icons.Material.Filled.HolidayVillage" IconColor="Color.Primary">
+                    <MudText Typo="Typo.h5" Class="d-block">Worlds completed</MudText>
+                    <MudText Typo="Typo.body1" Class="d-block">@_latestUpdate.WorldsCompleted.ToString("N0")</MudText>
+                </MudListItem>
+            </MudCardContent>
+        </MudCard>
+    </MudPaper>
+}
+
+@code {
+    SystemStatusUpdate? _latestUpdate;
+
+    protected override void OnInitialized()
+    {
+        _hubClient.SystemStatusUpdate -= OnSystemUpdateReceived;
+        _hubClient.SystemStatusUpdate += OnSystemUpdateReceived;
+
+        base.OnInitialized();
+    }
+
+    private Task OnSystemUpdateReceived(SystemStatusUpdateReceivedEventArgs args)
+    {
+        _latestUpdate = args.SystemStatusUpdate;
+
+        base.StateHasChanged();
+        return Task.CompletedTask;
+    }
+}

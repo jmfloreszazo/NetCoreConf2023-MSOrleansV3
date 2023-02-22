@@ -1,0 +1,88 @@
+﻿@inject IWanderlandHttpApiClient _apiClient
+@inject WanderlandHubClient _hubClient
+
+<MudPaper Height="80px"
+          Width="80px"
+          Class="d-flex align-center justify-center"
+          Elevation="8"
+          Style='@($"background:{GetColorForTile()}")'>
+    <MudAvatarGroup Max="5" Spacing="2" MaxColor="Color.Primary">
+        @if (Model != null)
+        {
+            @foreach (var wanderer in Model.ThingsHere)
+            {
+                if (string.IsNullOrEmpty(wanderer.AvatarImageUrl))
+                {
+                    <MudAvatar Color="Color.Primary" Variant="Variant.Filled">@wanderer.Name.First()</MudAvatar>
+                }
+                else
+                {
+                    <MudImage Width="80" Height="80" Src="@wanderer.AvatarImageUrl"/>
+                }
+            }
+        }
+    </MudAvatarGroup>
+</MudPaper>
+
+@code {
+    [Parameter]
+    public int Row { get; set; }
+
+    [Parameter]
+    public int Column { get; set; }
+
+    [Parameter]
+    public string? WorldName { get; set; }
+
+    private Wanderland.Web.Shared.Tile? Model { get; set; }
+    private TileType TileType;
+    private bool shouldRender = false;
+
+    protected override bool ShouldRender() => shouldRender;
+
+    private Task OnTileUpdated(TileUpdatedEventArgs args)
+    {
+        if (args.Tile.World == WorldName && 
+            args.Tile.Row == Row && 
+            args.Tile.Column == Column)
+        {
+            Model = args.Tile;
+            base.StateHasChanged();
+        }
+        return Task.CompletedTask;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(WorldName))
+        {
+            Model = await _apiClient.GetTileCurrentState(WorldName, Row, Column);
+            _hubClient.TileUpdate -= OnTileUpdated;
+            _hubClient.TileUpdate += OnTileUpdated;
+            TileType = Model.Type;
+            shouldRender = true;
+        }
+    }
+
+    protected string GetColorForTile()
+    {
+        if (Model is null)
+            return Colors.BlueGrey.Darken3;
+
+        if (Model.Type == TileType.Barrier)
+            return Colors.Shades.Black;
+
+        return Model.Column switch
+        {
+            0 => Colors.DeepPurple.Darken3,
+            1 => Colors.DeepPurple.Darken2,
+            2 => Colors.DeepPurple.Darken1,
+            >= 3 and < 6 => Colors.DeepPurple.Default,
+            6 => Colors.DeepPurple.Lighten1,
+            7 => Colors.DeepPurple.Lighten2,
+            8 => Colors.DeepPurple.Lighten3,
+            9 => Colors.DeepPurple.Lighten4,
+            _ => Colors.BlueGrey.Darken3
+        };
+    }
+}

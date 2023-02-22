@@ -1,0 +1,37 @@
+﻿@page "/grid/{worldName?}"
+@inject IWanderlandHttpApiClient _apiClient
+@inject WanderlandHubClient _hubClient
+
+@if (!string.IsNullOrEmpty(WorldName))
+{
+    @for (int row = 0; row < World.Rows; row++)
+    {
+        int currentRow = row;
+        <MudGrid Spacing="2" Justify="Justify.Center" Class="d-flex flex-nowrap">
+            @for (int col = 0; col < World.Columns; col++)
+            {
+                int currentColumn = col;
+                <MudItem>
+                    <Tile Row="@currentRow" Column="@currentColumn" WorldName="@WorldName" />
+                </MudItem>
+            }
+        </MudGrid>
+    }
+}
+
+@code {
+    [Parameter]
+    public string? WorldName { get; set; }
+    public World World { get; set; } = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(WorldName))
+        {
+            World = await _apiClient.GetWorld(WorldName);
+            await _hubClient.JoinWorld(WorldName);
+            StateHasChanged();
+        }
+    }
+}
+
