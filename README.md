@@ -1,4 +1,4 @@
-# MadNightCodersNov2022-MSOrleansV3
+# NetCoreConf2023-MSOrleansV
 
 You can run this sample: https://github.com/bradygaster/Wanderland, this sample not is mine, but I add here to use in this presentation of Orleans. All credits to the author.
 
